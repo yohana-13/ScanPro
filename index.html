@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ScanPro - Evaluasi Proposal Akademik | DFA + C4.5</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/4.1.1/tesseract.min.js"></script>
+</head>
+<body>
+
+<div class="loading-screen" id="loadingScreen">
+  <div class="spinner"></div>
+  <div class="loading-msg" id="loadingMsg">Menjalankan Lexical Analyzer...</div>
+  <div class="loading-steps">
+    <div class="loading-dot"></div><div class="loading-dot"></div><div class="loading-dot"></div>
+  </div>
+</div>
+
+<nav class="navbar">
+  <a class="nav-brand" onclick="navigate('home')">
+    <img class="nav-logo" id="navLogo" src="assets/logo.jpeg" alt="Logo ScanPro">
+    <span class="nav-title">Scan<em>Pro</em></span>
+  </a>
+  <ul class="nav-links">
+    <li><a class="active" data-nav="home" onclick="navigate('home')">Beranda</a></li>
+    <li><a data-nav="analyze" onclick="navigate('analyze')">Analisis</a></li>
+    <li><a data-nav="about" onclick="navigate('about')">Tentang</a></li>
+    <li><a data-nav="contact" onclick="navigate('contact')">Kontak</a></li>
+  </ul>
+  <div class="nav-cta">
+    <button class="btn btn-primary" onclick="navigate('analyze')">Mulai Analisis</button>
+  </div>
+</nav>
+
+<div class="page active" id="page-home">
+  <div class="section-wrap">
+    <div class="hero-left anim-1">
+      <h1 class="hero-headline">Evaluasi<br><em>Kelayakan</em><br>Proposal</h1>
+      <p class="hero-body">
+        Implementasi <strong>Lexical Analyzer</strong> berbasis <em>Deterministic Finite Automata</em>
+        dan Algoritma <em>C4.5</em> untuk menilai kelayakan proposal akademik
+        secara otomatis, cepat, dan terukur.
+      </p>
+      <div class="hero-actions">
+        <button class="btn btn-primary btn-lg" onclick="navigate('analyze')">Mulai Analisis</button>
+        <button class="btn btn-outline btn-lg" onclick="navigate('about')">Pelajari Sistem</button>
+      </div>
+    </div>
+    <div class="hero-right anim-2">
+      <div class="hero-img-blob"></div>
+      <img id="heroImg" class="hero-img" src="assets/hero-illustration.png" alt="Ilustrasi Evaluasi Proposal">
+    </div>
+    <div class="stats-bar anim-3">
+      <div class="stat-card">
+        <div class="stat-num">DFA</div>
+        <div class="stat-label">Lexical Analyzer Engine</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">C4.5</div>
+        <div class="stat-label">Algoritma Decision Tree</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">7</div>
+        <div class="stat-label">Fitur Analisis Akademik</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">3</div>
+        <div class="stat-label">Kelas Kelayakan Output</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="page" id="page-analyze">
+  <div class="section-wrap">
+    <div class="section-head">
+      <h2>Analisis Proposal</h2>
+      <p>Unggah file <code>.txt</code>, <code>.pdf</code>, <code>.docx</code>, atau gambar PNG/JPG — teks diekstrak otomatis. Atau tempel teks langsung di bawah.</p>
+    </div>
+
+    <div class="tab-bar">
+      <button class="tab-btn active" id="tab-single" onclick="switchTab('single')">Analisis Tunggal</button>
+      <button class="tab-btn" id="tab-compare" onclick="switchTab('compare')">Perbandingan Dua Proposal</button>
+    </div>
+
+    <div class="tab-content active" id="tabcontent-single">
+      <div class="progress-track" id="progressTrack">
+        <div class="prog-step active" id="pstep1">
+          <div class="prog-dot">1</div><div class="prog-label">Input Teks</div>
+        </div>
+        <div class="prog-line" id="pline1"></div>
+        <div class="prog-step" id="pstep2">
+          <div class="prog-dot">2</div><div class="prog-label">Tokenisasi DFA</div>
+        </div>
+        <div class="prog-line" id="pline2"></div>
+        <div class="prog-step" id="pstep3">
+          <div class="prog-dot">3</div><div class="prog-label">Klasifikasi C4.5</div>
+        </div>
+        <div class="prog-line" id="pline3"></div>
+        <div class="prog-step" id="pstep4">
+          <div class="prog-dot">4</div><div class="prog-label">Hasil</div>
+        </div>
+      </div>
+
+      <div class="analyze-layout">
+        <div class="panel">
+          <div class="panel-title">Input Proposal</div>
+          <div class="panel-sub">Unggah <strong>.txt .pdf .docx .png .jpg</strong> atau tulis/tempel teks</div>
+
+          <div class="dropzone" id="dropZone" onclick="triggerFilePick()">
+            <div id="dzDefault">
+              <div class="dz-icon">&#8686;</div>
+              <div class="dz-title">Unggah File Proposal</div>
+              <div class="dz-sub">Seret dan lepas file di sini atau klik untuk memilih</div>
+              <div style="display:flex;gap:5px;justify-content:center;flex-wrap:wrap;margin-top:9px">
+                <span style="font-size:0.7rem;padding:2px 9px;border-radius:99px;background:var(--primary-bg);color:var(--primary);border:1px solid var(--primary-l)">TXT</span>
+                <span style="font-size:0.7rem;padding:2px 9px;border-radius:99px;background:var(--tidak-bg);color:var(--tidak);border:1px solid var(--tidak)">PDF</span>
+                <span style="font-size:0.7rem;padding:2px 9px;border-radius:99px;background:var(--accent-bg);color:#B84E47;border:1px solid var(--accent)">DOCX</span>
+                <span style="font-size:0.7rem;padding:2px 9px;border-radius:99px;background:var(--layak-bg);color:var(--layak);border:1px solid var(--layak)">PNG/JPG</span>
+              </div>
+            </div>
+            <div id="dzActive" class="dz-active" style="display:none">
+              <span id="dzFilename" class="dz-filename">-</span>
+              <button class="dz-clear" onclick="event.stopPropagation();clearFile()">&#215;</button>
+            </div>
+            <div id="uploadProgress" class="upload-progress" style="display:none">
+              <p id="uploadMsg">Memuat file...</p>
+              <div class="progress-bar"><div class="progress-fill" id="uploadFill"></div></div>
+            </div>
+            <input type="file" id="fileInput" style="display:none" accept=".txt,.pdf,.docx,.doc,.png,.jpg,.jpeg,.webp,.bmp,.tiff" onchange="handleFile(event)">
+          </div>
+
+          <div id="previewBox" class="preview-box" style="display:none">
+            <div class="preview-box-title">Pratinjau Dokumen</div>
+            <img id="previewImg" style="display:none;max-height:120px;max-width:100%;border-radius:7px;margin-bottom:7px;object-fit:contain" alt="Pratinjau gambar">
+            <div class="preview-text" id="previewText"></div>
+            <div class="preview-meta" id="previewMeta"></div>
+          </div>
+
+          <div class="divider-or">atau tulis langsung</div>
+
+          <textarea class="proposal-textarea" id="proposalText"
+            placeholder="Tempelkan atau ketik teks proposal akademik di sini..."></textarea>
+
+          <div class="action-row">
+            <button class="btn btn-primary" onclick="runAnalysis()" id="runBtn">Jalankan Analisis</button>
+            <button class="btn btn-outline" onclick="loadSample()">Contoh</button>
+            <button class="btn btn-pdf" id="exportBtn" onclick="exportPDF()" style="display:none">Ekspor PDF</button>
+          </div>
+
+          <div class="history-box">
+            <div class="history-header">
+              <span class="history-title">Riwayat Analisis</span>
+              <button class="history-clear" onclick="clearHistory()">Hapus Semua</button>
+            </div>
+            <div id="historyEmpty" class="history-empty">Belum ada riwayat analisis.</div>
+            <ul class="history-list" id="historyList"></ul>
+          </div>
+        </div>
+
+        <div id="resultsPanel">
+          <div class="results-empty" id="resultsEmpty">
+            <div class="results-empty-icon">&#9632;</div>
+            <p style="font-size:0.95rem;font-weight:500;color:var(--fg);margin-bottom:6px">Siap untuk Analisis</p>
+            <p style="font-size:0.85rem">Masukkan teks proposal lalu klik <strong>Jalankan Analisis</strong></p>
+          </div>
+
+          <div id="resultsContent" style="display:none">
+
+            <div id="verdictCard" class="verdict-card verdict-layak" style="margin-bottom:16px">
+              <div class="verdict-left">
+                <div class="verdict-label">Keputusan Klasifikasi C4.5</div>
+                <div class="verdict-text" id="verdictText">-</div>
+                <div class="verdict-desc" id="verdictDesc">-</div>
+              </div>
+              <div class="verdict-right">
+                <div class="verdict-score" id="verdictScore">-</div>
+                <div class="verdict-score-label">Skor Kelayakan</div>
+              </div>
+            </div>
+            <div style="height:7px;background:var(--border);border-radius:99px;overflow:hidden;margin-bottom:16px">
+              <div id="verdictFill" style="width:0%;height:100%;border-radius:99px;transition:width 1s ease;"></div>
+            </div>
+
+            <div class="stats-grid" style="margin-bottom:16px">
+              <div class="stat-mini"><div class="stat-mini-val" id="sTotal">-</div><div class="stat-mini-lbl">Total Token</div></div>
+              <div class="stat-mini"><div class="stat-mini-val" id="sKeywords">-</div><div class="stat-mini-lbl">Kata Kunci</div></div>
+              <div class="stat-mini"><div class="stat-mini-val" id="sIdents">-</div><div class="stat-mini-lbl">Identifier</div></div>
+              <div class="stat-mini"><div class="stat-mini-val" id="sNumbers">-</div><div class="stat-mini-lbl">Angka</div></div>
+            </div>
+
+            <div class="result-panel">
+              <div class="result-panel-title">Aliran Token (Lexical Analyzer DFA)</div>
+              <div class="token-stream" id="tokenStream"></div>
+              <div class="token-legend" style="margin-top:10px">
+                <span class="token-legend-label">Legenda:</span>
+                <span class="token-chip tk-kw">KEYWORD</span>
+                <span class="token-chip tk-id">IDENTIFIER</span>
+                <span class="token-chip tk-num">NUMBER</span>
+                <span class="token-chip tk-op">OPERATOR</span>
+                <span class="token-chip tk-err">ERROR</span>
+              </div>
+            </div>
+
+            <div class="result-panel" style="margin-bottom:14px">
+              <div class="result-panel-title">Diagram State DFA</div>
+              <div id="dfaDiagram" style="padding:4px 0"></div>
+            </div>
+
+            <div class="results-grid-2">
+              <div class="result-panel">
+                <div class="result-panel-title">Tabel Transisi State DFA</div>
+                <div style="overflow-x:auto">
+                  <table class="dfa-table">
+                    <thead><tr><th>Token</th><th>q_awal</th><th>q_akhir</th><th>Status</th></tr></thead>
+                    <tbody id="dfaTableBody"></tbody>
+                  </table>
+                </div>
+              </div>
+              <div class="result-panel">
+                <div class="result-panel-title">Bobot Fitur C4.5 (Information Gain)</div>
+                <div id="featureBars"></div>
+                <div class="entropy-row">
+                  <span class="entropy-label">Entropy (H)</span>
+                  <span class="entropy-val" id="entropyVal">-</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="result-panel">
+              <div class="result-panel-title">Pohon Keputusan C4.5</div>
+              <ul class="decision-list" id="decisionList"></ul>
+            </div>
+
+            <div id="suggestPanel" class="result-panel" style="background:var(--accent-bg);border-color:var(--accent);display:none">
+              <div class="result-panel-title">Saran Perbaikan</div>
+              <ul class="suggestion-list" id="suggestionList"></ul>
+            </div>
+
+            <div class="result-panel">
+              <div class="result-panel-title">Kata Kunci Akademik Terdeteksi</div>
+              <div id="kwChips" style="display:flex;flex-wrap:wrap;gap:5px"></div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-content" id="tabcontent-compare">
+      <div class="compare-layout">
+        <div class="compare-panel" id="cmpPanelA">
+          <div class="compare-panel-label">Proposal A</div>
+          <div class="dropzone cmp-dropzone" id="cmpDropZoneA" onclick="triggerCmpFilePick('A')">
+            <div id="cmpDzDefaultA">
+              <div class="dz-icon">&#8686;</div>
+              <div class="dz-title">Unggah File Proposal A</div>
+              <div class="dz-sub">Seret dan lepas atau klik untuk memilih</div>
+              <div style="display:flex;gap:5px;justify-content:center;flex-wrap:wrap;margin-top:9px">
+                <span style="font-size:0.7rem;padding:2px 9px;border-radius:99px;background:var(--primary-bg);color:var(--primary);border:1px solid var(--primary-l)">TXT</span>
+                <span style="font-size:0.7rem;padding:2px 9px;border-radius:99px;background:var(--tidak-bg);color:var(--tidak);border:1px solid var(--tidak)">PDF</span>
+                <span style="font-size:0.7rem;padding:2px 9px;border-radius:99px;background:var(--accent-bg);color:#B84E47;border:1px solid var(--accent)">DOCX</span>
+                <span style="font-size:0.7rem;padding:2px 9px;border-radius:99px;background:var(--layak-bg);color:var(--layak);border:1px solid var(--layak)">PNG/JPG</span>
+              </div>
+            </div>
+            <div id="cmpDzActiveA" class="dz-active" style="display:none">
+              <span id="cmpDzFilenameA" class="dz-filename">-</span>
+              <button class="dz-clear" onclick="event.stopPropagation();clearCmpFile('A')">&#215;</button>
+            </div>
+            <div id="cmpUploadProgressA" class="upload-progress" style="display:none">
+              <p id="cmpUploadMsgA">Memuat file...</p>
+              <div class="progress-bar"><div class="progress-fill" id="cmpUploadFillA"></div></div>
+            </div>
+            <input type="file" id="cmpFileInputA" style="display:none" accept=".txt,.pdf,.docx,.doc,.png,.jpg,.jpeg,.webp,.bmp,.tiff" onchange="handleCmpFile(event,'A')">
+          </div>
+          <div class="divider-or">atau tulis langsung</div>
+          <textarea class="proposal-textarea" id="compareTextA" placeholder="Tempelkan teks Proposal A di sini..."></textarea>
+          <div class="action-row" style="margin-top:10px">
+            <button class="btn btn-outline" onclick="loadSampleCompare('A')">Contoh A</button>
+          </div>
+        </div>
+        <div class="compare-panel" id="cmpPanelB">
+          <div class="compare-panel-label">Proposal B</div>
+          <div class="dropzone cmp-dropzone" id="cmpDropZoneB" onclick="triggerCmpFilePick('B')">
+            <div id="cmpDzDefaultB">
+              <div class="dz-icon">&#8686;</div>
+              <div class="dz-title">Unggah File Proposal B</div>
+              <div class="dz-sub">Seret dan lepas atau klik untuk memilih</div>
+              <div style="display:flex;gap:5px;justify-content:center;flex-wrap:wrap;margin-top:9px">
+                <span style="font-size:0.7rem;padding:2px 9px;border-radius:99px;background:var(--primary-bg);color:var(--primary);border:1px solid var(--primary-l)">TXT</span>
+                <span style="font-size:0.7rem;padding:2px 9px;border-radius:99px;background:var(--tidak-bg);color:var(--tidak);border:1px solid var(--tidak)">PDF</span>
+                <span style="font-size:0.7rem;padding:2px 9px;border-radius:99px;background:var(--accent-bg);color:#B84E47;border:1px solid var(--accent)">DOCX</span>
+                <span style="font-size:0.7rem;padding:2px 9px;border-radius:99px;background:var(--layak-bg);color:var(--layak);border:1px solid var(--layak)">PNG/JPG</span>
+              </div>
+            </div>
+            <div id="cmpDzActiveB" class="dz-active" style="display:none">
+              <span id="cmpDzFilenameB" class="dz-filename">-</span>
+              <button class="dz-clear" onclick="event.stopPropagation();clearCmpFile('B')">&#215;</button>
+            </div>
+            <div id="cmpUploadProgressB" class="upload-progress" style="display:none">
+              <p id="cmpUploadMsgB">Memuat file...</p>
+              <div class="progress-bar"><div class="progress-fill" id="cmpUploadFillB"></div></div>
+            </div>
+            <input type="file" id="cmpFileInputB" style="display:none" accept=".txt,.pdf,.docx,.doc,.png,.jpg,.jpeg,.webp,.bmp,.tiff" onchange="handleCmpFile(event,'B')">
+          </div>
+          <div class="divider-or">atau tulis langsung</div>
+          <textarea class="proposal-textarea" id="compareTextB" placeholder="Tempelkan teks Proposal B di sini..."></textarea>
+          <div class="action-row" style="margin-top:10px">
+            <button class="btn btn-outline" onclick="loadSampleCompare('B')">Contoh B</button>
+          </div>
+        </div>
+      </div>
+      <div style="margin-bottom:22px">
+        <button class="btn btn-compare" onclick="runComparison()" id="compareBtn">Bandingkan Dua Proposal</button>
+        <button class="btn btn-pdf" id="comparePdfBtn" onclick="exportComparePDF()" style="display:none;margin-left:8px">Ekspor PDF Perbandingan</button>
+      </div>
+
+      <div id="compareResults" style="display:none">
+        <div class="compare-results">
+          <div class="compare-col">
+            <div class="compare-col-title">Proposal A</div>
+            <div id="cmpVerdictA" class="compare-verdict-mini verdict-layak verdict-card" style="margin-bottom:12px">
+              <div class="verdict-left">
+                <div class="verdict-label">Klasifikasi</div>
+                <div class="verdict-text" id="cmpVerdTextA">-</div>
+              </div>
+              <div class="verdict-right">
+                <div class="verdict-score" id="cmpVerdScoreA">-</div>
+                <div class="verdict-score-label">Skor</div>
+              </div>
+            </div>
+            <div id="cmpFeatA" class="compare-feature-bars"></div>
+          </div>
+          <div class="compare-col">
+            <div class="compare-col-title">Proposal B</div>
+            <div id="cmpVerdictB" class="compare-verdict-mini verdict-layak verdict-card" style="margin-bottom:12px">
+              <div class="verdict-left">
+                <div class="verdict-label">Klasifikasi</div>
+                <div class="verdict-text" id="cmpVerdTextB">-</div>
+              </div>
+              <div class="verdict-right">
+                <div class="verdict-score" id="cmpVerdScoreB">-</div>
+                <div class="verdict-score-label">Skor</div>
+              </div>
+            </div>
+            <div id="cmpFeatB" class="compare-feature-bars"></div>
+          </div>
+        </div>
+        <div class="compare-diff-panel">
+          <div class="compare-diff-title">Perbandingan Detail Fitur</div>
+          <div id="cmpDiffRows"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="page" id="page-about">
+  <div class="section-wrap">
+    <div class="section-head">
+      <h2>Tentang Sistem</h2>
+      <p>Implementasi Lexical Analyzer berbasis DFA dan Algoritma C4.5 untuk evaluasi kelayakan proposal akademik</p>
+    </div>
+
+    <div class="about-hero">
+      <h2>Implementasi Lexical Analyzer Berbasis DFA dan Algoritma C4.5</h2>
+      <p>
+        Sistem ini dikembangkan sebagai tugas mata kuliah <strong>Pengantar Sains Komputasi</strong>.
+        Menggabungkan <em>Lexical Analyzer berbasis Deterministic Finite Automata (DFA)</em>
+        untuk tokenisasi dan validasi struktur teks, serta <em>Algoritma Decision Tree C4.5</em>
+        untuk klasifikasi kelayakan proposal berdasarkan 7 fitur linguistik dan akademik
+        yang diekstrak secara otomatis.
+      </p>
+    </div>
+
+    <div class="about-grid">
+      <div class="about-card">
+        <h3>Lexical Analyzer dan DFA</h3>
+        <p>DFA (Deterministic Finite Automaton) memproses teks proposal karakter per karakter melalui state transitions yang deterministik untuk menghasilkan token stream.</p>
+        <ul class="about-steps">
+          <li class="about-step"><div class="step-num">1</div><span>Teks diproses token demi token menggunakan state machine</span></li>
+          <li class="about-step"><div class="step-num">2</div><span>DFA berpindah state berdasarkan karakter input: huruf, angka, spasi</span></li>
+          <li class="about-step"><div class="step-num">3</div><span>State akhir menentukan jenis token: KEYWORD, IDENTIFIER, NUMBER</span></li>
+          <li class="about-step"><div class="step-num">4</div><span>Token stream dikumpulkan untuk analisis lanjutan C4.5</span></li>
+        </ul>
+      </div>
+
+      <div class="about-card">
+        <h3>Algoritma C4.5</h3>
+        <p>C4.5 membangun pohon keputusan menggunakan Information Gain Ratio. Fitur dengan entropy gain terbaik dipilih sebagai simpul pemisah keputusan.</p>
+        <ul class="about-steps">
+          <li class="about-step"><div class="step-num">1</div><span>Hitung entropy keseluruhan dataset proposal</span></li>
+          <li class="about-step"><div class="step-num">2</div><span>Hitung information gain untuk setiap fitur akademik</span></li>
+          <li class="about-step"><div class="step-num">3</div><span>Pilih fitur dengan gain ratio tertinggi sebagai pemisah</span></li>
+          <li class="about-step"><div class="step-num">4</div><span>Rekursi hingga leaf node menghasilkan keputusan akhir</span></li>
+        </ul>
+      </div>
+
+      <div class="about-card">
+        <h3>7 Fitur Analisis</h3>
+        <p>Sistem mengekstrak 7 fitur kuantitatif dan kualitatif dari proposal untuk input klasifikasi C4.5:</p>
+        <ul class="about-steps">
+          <li class="about-step"><div class="step-num">F1</div><span>Kepadatan dan rasio keyword akademik terhadap total token</span></li>
+          <li class="about-step"><div class="step-num">F2</div><span>Rasio term akademik versus identifier biasa</span></li>
+          <li class="about-step"><div class="step-num">F3</div><span>Kelengkapan bagian wajib: Latar Belakang, Tujuan, Metodologi, Hasil</span></li>
+          <li class="about-step"><div class="step-num">F4</div><span>Konsistensi data numerik dalam teks proposal</span></li>
+          <li class="about-step"><div class="step-num">F5</div><span>Ketiadaan token error (validitas leksikal)</span></li>
+          <li class="about-step"><div class="step-num">F6</div><span>Kekayaan kosakata (rasio identifier unik)</span></li>
+          <li class="about-step"><div class="step-num">F7</div><span>Panjang teks minimum yang memadai</span></li>
+        </ul>
+      </div>
+
+      <div class="about-card">
+        <h3>Tiga Kelas Output</h3>
+        <p>Sistem menghasilkan tiga kelas kelayakan berdasarkan skor akhir pohon keputusan C4.5:</p>
+        <ul class="about-steps">
+          <li class="about-step"><div class="step-num" style="background:var(--layak-bg);color:var(--layak)">L</div><span><strong>Layak</strong> — skor lebih dari 80%, memenuhi standar akademik</span></li>
+          <li class="about-step"><div class="step-num" style="background:var(--revisi-bg);color:var(--revisi)">R</div><span><strong>Layak dengan Revisi</strong> — skor 55-79%, butuh perbaikan minor</span></li>
+          <li class="about-step"><div class="step-num" style="background:var(--tidak-bg);color:var(--tidak)">T</div><span><strong>Tidak Layak</strong> — skor di bawah 55%, belum memenuhi kriteria minimum</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="training-section">
+      <h3>Dataset Training C4.5</h3>
+      <p>
+        Berikut adalah 15 contoh proposal berlabel dari dataset training yang digunakan untuk
+        menentukan bobot fitur pada algoritma C4.5. Setiap contoh menampilkan nilai 7 fitur yang
+        diekstrak melalui Lexical Analyzer DFA beserta label kelas yang ditetapkan oleh evaluator akademik.
+        Information Gain dari setiap fitur dihitung berdasarkan distribusi kelas pada dataset ini.
+      </p>
+
+      <div class="dataset-table-wrap">
+        <table class="dataset-table" id="datasetTable">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Cuplikan Proposal</th>
+              <th>F1 KwDens</th>
+              <th>F2 AcRatio</th>
+              <th>F3 Struct</th>
+              <th>F4 Numeric</th>
+              <th>F5 ErrRate</th>
+              <th>F6 VocRich</th>
+              <th>F7 Length</th>
+              <th>Label</th>
+            </tr>
+          </thead>
+          <tbody id="datasetBody"></tbody>
+        </table>
+      </div>
+
+      <div class="info-gain-section">
+        <h4>Information Gain per Fitur</h4>
+        <p>
+          Nilai information gain dihitung menggunakan rumus entropi Shannon terhadap distribusi kelas
+          pada 15 sampel dataset di atas. Fitur dengan IG tertinggi dipilih sebagai simpul pemisah
+          utama pada pohon keputusan C4.5.
+        </p>
+        <div style="overflow-x:auto;border-radius:14px;border:1px solid var(--border)">
+          <table class="ig-table">
+            <thead>
+              <tr>
+                <th>Fitur</th>
+                <th>Bobot (w)</th>
+                <th>Info Gain (IG)</th>
+                <th>Gain Ratio</th>
+                <th>Peran dalam Pohon</th>
+                <th>Visualisasi</th>
+              </tr>
+            </thead>
+            <tbody id="igTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="page" id="page-contact">
+  <div class="section-wrap">
+    <div class="section-head">
+      <h2>Hubungi Kami</h2>
+    </div>
+    <div class="contact-grid">
+      <div>
+        <p class="contact-info">
+          Proyek ini dikembangkan untuk mata kuliah <strong>Pengantar Sains Komputasi</strong>.
+        </p>
+        <div class="contact-item"><div class="c-dot"></div>Universitas Negeri Medan</div>
+        <div class="contact-item"><div class="c-dot"></div>Mata Kuliah: Pengantar Sains Komputasi</div>
+      </div>
+      <div>
+        <div class="form-field">
+          <label class="field-label">Nama</label>
+          <input class="field-input" type="text" placeholder="Nama lengkap Anda" id="contactName">
+        </div>
+        <div class="form-field">
+          <label class="field-label">Email</label>
+          <input class="field-input" type="email" placeholder="email@universitas.ac.id" id="contactEmail">
+        </div>
+        <div class="form-field">
+          <label class="field-label">Subjek</label>
+          <input class="field-input" type="text" placeholder="Pertanyaan / Diskusi / Kolaborasi" id="contactSubject">
+        </div>
+        <div class="form-field">
+          <label class="field-label">Pesan</label>
+          <textarea class="field-input field-textarea" placeholder="Tulis pesan Anda..." id="contactMsg"></textarea>
+        </div>
+        <button class="btn btn-primary btn-full" onclick="submitContact()">Kirim Pesan</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer class="footer">
+  <div style="font-size:0.78rem;color:var(--fg-muted)">ScanPro &mdash; Pengantar Sains Komputasi, Universitas Negeri Medan</div>
+  <div class="footer-socials">
+    <span class="social-btn" title="Instagram">ig</span>
+    <span class="social-btn" title="GitHub">gh</span>
+    <span class="social-btn" title="LinkedIn">in</span>
+  </div>
+</footer>
+
+<script src="js/dfa.js"></script>
+<script src="js/c45.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/file.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
